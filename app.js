@@ -37,7 +37,10 @@ console.log(databaseUri)
 
 mongoose.connect(databaseUri, {useNewUrlParser: true, useUnifiedTopology: true})
       .then(() => console.log(`Database connected`))
-      .catch(err => console.log(`Database connection error: ${err.message}`));
+      .catch(err => {
+          console.log(`Database connection error: ${err.message}`);
+          process.exit(1);
+      });
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
