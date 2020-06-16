@@ -10,7 +10,7 @@ var express     = require("express"),
     Comment     = require("./models/comment"),
     User        = require("./models/user"),
     session = require("express-session"),
-    seedDB      = require("./seeds"),
+    MongoDBStore = require('connect-mongodb-session')(session),
     methodOverride = require("method-override");
 // configure dotenv
 require('dotenv').config();
@@ -41,6 +41,16 @@ mongoose.connect(databaseUri, {useNewUrlParser: true, useUnifiedTopology: true})
           console.log(`Database connection error: ${err.message}`);
           process.exit(1);
       });
+      
+var store = new MongoDBStore({
+  uri: databaseUri,
+  collection: 'mySessions'
+});
+
+// Catch errors
+store.on('error', function(error) {
+  console.log(error);
+});
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
@@ -53,9 +63,16 @@ app.locals.moment = require('moment');
 
 // PASSPORT CONFIGURATION
 app.use(require("express-session")({
-    secret: PASSCODE,
-    resave: false,
-    saveUninitialized: false
+    secret: 'This is a secret',
+    cookie: {
+    maxAge: 1000 * 60 * 60 * 24 * 7 // 1 week
+    },
+    store: store,
+    // Boilerplate options, see:
+    // * https://www.npmjs.com/package/express-session#resave
+    // * https://www.npmjs.com/package/express-session#saveuninitialized
+    resave: true,
+    saveUninitialized: true
 }));
 
 app.use(flash());
